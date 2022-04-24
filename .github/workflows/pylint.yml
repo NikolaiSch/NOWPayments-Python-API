@@ -21,4 +21,5 @@ jobs:
           pip install -r requirements-dev.txt
       - name: Analyzing the code with pylint
         run: |
-          pylint $(git ls-files '*.py')
+          pylint $(git ls-files '*.py') --fail-under=9
+        
