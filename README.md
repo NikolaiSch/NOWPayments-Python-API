@@ -3,7 +3,6 @@
 [![CodeQL](https://github.com/NikolaiSch/NowPay-Python/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/NikolaiSch/NowPay-Python/actions/workflows/codeql-analysis.yml)
 [![Pylint](https://github.com/NikolaiSch/NowPay-Python/actions/workflows/pylint.yml/badge.svg)](https://github.com/NikolaiSch/NowPay-Python/actions/workflows/pylint.yml)
 [![Python application](https://github.com/NikolaiSch/NowPay-Python/actions/workflows/python-app.yml/badge.svg)](https://github.com/NikolaiSch/NowPay-Python/actions/workflows/python-app.yml)
-[![Python package](https://github.com/NikolaiSch/NowPay-Python/actions/workflows/python-package.yml/badge.svg)](https://github.com/NikolaiSch/NowPay-Python/actions/workflows/python-package.yml)
 [![Upload Python Package](https://github.com/NikolaiSch/NowPay-Python/actions/workflows/python-publish.yml/badge.svg)](https://github.com/NikolaiSch/NowPay-Python/actions/workflows/python-publish.yml)
 [![codecov](https://codecov.io/gh/NikolaiSch/NowPay-Python/branch/main/graph/badge.svg?token=Z7NIDJI2LD)](https://codecov.io/gh/NikolaiSch/NowPay-Python)
 [![Black](https://github.com/NikolaiSch/NowPay-Python/actions/workflows/black.yml/badge.svg)](https://github.com/NikolaiSch/NowPay-Python/actions/workflows/black.yml)
