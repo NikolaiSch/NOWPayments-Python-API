@@ -46,8 +46,10 @@ now_pay = NOWPayments(SANDBOX_API_KEY, True)
 status = now_pay.status()
 ```
 
-How to use the IPN
-export_app() returns a wsgi app that can be hosted with waitress, gurnicorn or others
+How to use the IPN  
+
+export_app() returns a WSGI app that can be hosted with waitress, gurnicorn or others
+
 ```python
 from nowpay.ipn import Ipn
 

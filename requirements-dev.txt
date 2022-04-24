@@ -6,4 +6,3 @@ mypy
 pylint
 black
 python-dotenv
-flask
