@@ -17,7 +17,7 @@ class NOWPayments:
 
     debug_mode = False
 
-    post_regex = r"([A-z0-9]{7}-[A-z0-9]{7}-[A-z0-9]{7}-[A-z0-9]{7})"
+    key_regex = r"([A-z0-9]{7}-[A-z0-9]{7}-[A-z0-9]{7}-[A-z0-9]{7})"
 
     # Base URL
     NORMAL_URL = "https://api.nowpayments.io/v1/{}"
@@ -45,7 +45,7 @@ class NOWPayments:
         """
         self.debug_mode = debug_mode
 
-        if match(self.post_regex, key).group(0) != key:
+        if match(self.key_regex, key).group(0) != key:
             raise ValueError("Incorrect API Key format")
 
         self.session = requests.Session()

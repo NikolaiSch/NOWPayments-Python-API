@@ -5,5 +5,4 @@ pytest-mock
 mypy
 pylint
 black
-coverage
 python-dotenv
