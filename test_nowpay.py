@@ -1,107 +1,109 @@
 """Testing Module"""
 from os import getenv
-from dotenv import load_dotenv
-from typing import Any, Dict, Union
+
 import pytest
-from pytest_mock.plugin import MockerFixture
+from dotenv import load_dotenv
 from requests.exceptions import HTTPError
+
 from src.nowpay import NOWPayments
 
 load_dotenv()
 
 
 @pytest.fixture
-def np() -> NOWPayments:
+def now_pay() -> NOWPayments:
     """
     NOWPayments class fixture.
 
-    :params str api_key: Note, this is not a valid api key, just one that satisfies the regex: \w{7}-\w{7}-\w{7}-\w{7}
+    :params str api_key: Note, this is not a valid api key, just one that satisfies the regex
     :return: NOWPayments class.
     """
     return NOWPayments(getenv("API_KEY"))
 
 
 @pytest.fixture
-def np_sandbox() -> NOWPayments:
+def now_pay_sandbox() -> NOWPayments:
     """
     NOWPayments class fixture.
 
-    :params str api_key: Note, this is not a valid api key, just one that satisfies the regex: \w{7}-\w{7}-\w{7}-\w{7}
+    :params str api_key: Note, this is not a valid api key, just one that satisfies the regex
     :return: NOWPayments class.
     """
     return NOWPayments(getenv("SANDBOX_API_KEY"), debug_mode=True, sandbox=True)
 
 
-def test_api_url(np) -> None:
+def test_api_url(now_pay) -> None:
     """
     API url param test
 
-    :param np: NOWPayments class fixture
+    :param now_pay: NOWPayments class fixture
     :return:
     """
-    assert np.API_URL == "https://api.nowpayments.io/v1/{}"
+    assert now_pay.api_url == "https://api.nowpayments.io/v1/{}"
 
 
 def test_sandbox_url(
-    np_sandbox: NOWPayments,
+    now_pay_sandbox: NOWPayments,
 ) -> None:
     """
     API Sandbox url param test
 
-    :param np: NOWPayments class fixture
+    :param now_pay: NOWPayments class fixture
     :return:
     """
-    assert np_sandbox.API_URL == "https://api-sandbox.nowpayments.io/v1/{}"
+    assert now_pay_sandbox.api_url == "https://api-sandbox.nowpayments.io/v1/{}"
 
 
 def test_get_requests(
-    np_sandbox: NOWPayments,  # pylint: disable=redefined-outer-name
+    now_pay_sandbox: NOWPayments,  # pylint: disable=redefined-outer-name
 ) -> None:
     """
     Get request test
     """
-    response = np_sandbox.GET("STATUS")
+    response = now_pay_sandbox.get("STATUS")
     assert response == "https://api-sandbox.nowpayments.io/v1/status"
 
 
 def test_api_status(
-    np: NOWPayments,  # pylint: disable=redefined-outer-name
+    now_pay: NOWPayments,  # pylint: disable=redefined-outer-name
 ) -> None:
     """
     Get api status test
     """
-    assert np.status() == {"message": "OK"}
+    assert now_pay.status() == {"message": "OK"}
 
 
-def test_currencies(np: NOWPayments) -> None:
+def test_currencies(now_pay: NOWPayments) -> None:
     """
     Get available currencies test.
     """
-    assert np.currencies().get("currencies", "Not found") != "Not found"
+    assert now_pay.currencies().get("currencies", "Not found") != "Not found"
 
 
 def test_merchant_coins(
-    np: NOWPayments,  # pylint: disable=redefined-outer-name
+    now_pay: NOWPayments,  # pylint: disable=redefined-outer-name
 ) -> None:
     """
     Get available merchant currencies test
     """
-    assert np.merchant_coins().get("selectedCurrencies", "Not found") != "Not found"
+    assert (
+        now_pay.merchant_coins().get("selectedCurrencies", "Not found") != "Not found"
+    )
 
 
-def test_estimate(np: NOWPayments) -> None:
+def test_estimate(now_pay: NOWPayments) -> None:
     """
     Get estimate price test.
     """
     amount = 100
     currency_from = "usd"
     currency_to = "btc"
-    result = np.estimate(amount, currency_from, currency_to)
+    result = now_pay.estimate(amount, currency_from, currency_to)
     assert float(result.get("estimated_amount", "Not found")) >= 0.0001
     assert float(result.get("estimated_amount", "Not found")) <= 0.01
 
 
-def test_estimate_error(np: NOWPayments) -> None:
+def test_estimate_error(now_pay: NOWPayments) -> None:
     """
     Get estimate price test with error.
     """
@@ -109,17 +111,17 @@ def test_estimate_error(np: NOWPayments) -> None:
     currency_from = "nowpay"
     currency_to = "btc"
     with pytest.raises(HTTPError):
-        np.estimate(amount, currency_from, currency_to)
+        now_pay.estimate(amount, currency_from, currency_to)
 
 
 def test_create_payment_unexpected_keyword_argument_error(
-    np: NOWPayments,  # pylint: disable=redefined-outer-name
+    now_pay: NOWPayments,  # pylint: disable=redefined-outer-name
 ) -> None:
     """
     Create payment test with unexpected keyword argument error
     """
     with pytest.raises(TypeError):
-        np.create_payment(
+        now_pay.create_payment(
             price_amount=100,
             price_currency="usd",
             pay_currency="btc",
@@ -127,21 +129,21 @@ def test_create_payment_unexpected_keyword_argument_error(
         )
 
 
-def test_create_payment(np: NOWPayments) -> None:
+def test_create_payment(now_pay: NOWPayments) -> None:
     """
     Create payment test
     """
-    result = np.create_payment(
+    result = now_pay.create_payment(
         price_amount=100, price_currency="usd", pay_currency="btc"
     )
     assert result.get("payment_id", "Not found") != "Not found"
 
 
-def test_create_payment_with_argument(np: NOWPayments) -> None:
+def test_create_payment_with_argument(now_pay: NOWPayments) -> None:
     """
     Create payment test with argument
     """
-    result = np.create_payment(
+    result = now_pay.create_payment(
         price_amount=100,
         price_currency="usd",
         pay_currency="btc",
@@ -150,7 +152,7 @@ def test_create_payment_with_argument(np: NOWPayments) -> None:
     assert result.get("order_description", "Not found") == "My order"
 
 
-def test_create_payment_with_error(np: NOWPayments) -> None:
+def test_create_payment_with_error(now_pay: NOWPayments) -> None:
     """
     Create payment test with error
     """
@@ -159,14 +161,16 @@ def test_create_payment_with_error(np: NOWPayments) -> None:
         HTTPError,
         match="Error 500: This currency is currently unavailable. Try it in 2 hours",
     ):
-        np.create_payment(price_amount=100, price_currency="usd", pay_currency="cup")
+        now_pay.create_payment(
+            price_amount=100, price_currency="usd", pay_currency="cup"
+        )
 
 
-def test_payment_status(np: NOWPayments) -> None:
+def test_payment_status(now_pay: NOWPayments) -> None:
     """Create payment, then check status is waiting"""
-    payment_id = np.create_payment(
+    payment_id = now_pay.create_payment(
         price_amount=100, price_currency="usd", pay_currency="btc"
     )["payment_id"]
-    p = np.payment_status(int(payment_id))
-    assert p["payment_status"] == "waiting", "payment_status"
-    assert p["price_amount"] == 100, "price_amount"
+    payment = now_pay.payment_status(int(payment_id))
+    assert payment["payment_status"] == "waiting", "payment_status"
+    assert payment["price_amount"] == 100, "price_amount"

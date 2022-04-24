@@ -1,7 +1,7 @@
 """
 A Python wrapper for the NOWPayments API.
 """
-from email import header
+
 from typing import Any, Dict, Union
 from re import match
 
@@ -17,13 +17,13 @@ class NOWPayments:
 
     debug_mode = False
 
-    API_KEY_REGEX = r"([A-z0-9]{7}-[A-z0-9]{7}-[A-z0-9]{7}-[A-z0-9]{7})"
+    post_regex = r"([A-z0-9]{7}-[A-z0-9]{7}-[A-z0-9]{7}-[A-z0-9]{7})"
 
     # Base URL
     NORMAL_URL = "https://api.nowpayments.io/v1/{}"
     SANDBOX_URL = "https://api-sandbox.nowpayments.io/v1/{}"
 
-    API_URL = ""
+    api_url = ""
 
     endpoints = {
         "STATUS": "status",
@@ -40,22 +40,22 @@ class NOWPayments:
         Class construct. Receives your api key as initial parameter.
 
         :param str key: API key
-        :param bool sandbox: if True, sets API_URL to the sandbox url (need sandbox api key)
+        :param bool sandbox: if True, sets api_url to the sandbox url (need sandbox api key)
         :param bool debug_mode: returns the url, instead of doing any requests when successful
         """
         self.debug_mode = debug_mode
 
-        if match(self.API_KEY_REGEX, key).group(0) != key:
+        if match(self.post_regex, key).group(0) != key:
             raise ValueError("Incorrect API Key format")
 
         self.session = requests.Session()
-        self.API_KEY = key
-        self.headers = {"x-api-key": self.API_KEY, "User-Agent": "nowpay.py"}
+        self.key = key
+        self.headers = {"x-api-key": key, "User-Agent": "nowpay.py"}
 
         if sandbox:
-            self.API_URL = self.SANDBOX_URL
+            self.api_url = self.SANDBOX_URL
         else:
-            self.API_URL = self.NORMAL_URL
+            self.api_url = self.NORMAL_URL
 
     def create_url(self, endpoint: str) -> str:
         """
@@ -63,15 +63,15 @@ class NOWPayments:
 
         :param str endpoint: Endpoint to be used
         """
-        return self.API_URL.format(endpoint)
+        return self.api_url.format(endpoint)
 
-    def GET(self, endpoint: str, *args) -> Response:
+    def get(self, endpoint: str, *args) -> Response:
         """
         Make get requests with your header
 
         :param str url: URL to which the request is made
         """
-        assert endpoint in self.endpoints.keys()
+        assert endpoint in self.endpoints
         url = self.create_url(self.endpoints[endpoint])
         if len(args) >= 1:
             url = url.format(*args)
@@ -84,9 +84,9 @@ class NOWPayments:
             f'Error {resp.status_code}: {resp.json().get("message", "Not descriptions")}'
         )
 
-    def POST(self, endpoint: str, data: Dict = None, *args) -> Response:
+    def post(self, endpoint: str, data: Dict, *args) -> Response:
         """
-        Make get requests with your header and data
+        Make post requests with your header and data
 
         :param url: URL to which the request is made
         :param data: Data to which the request is made
@@ -98,7 +98,7 @@ class NOWPayments:
         if self.debug_mode:
             return url
         resp = self.session.post(url, data=data, headers=self.headers)
-        if resp.status_code == 200 or resp.status_code == 201:
+        if resp.status_code in (200, 201):
             return resp.json()
         raise HTTPError(
             f'Error {resp.status_code}: {resp.json().get("message", "Not descriptions")}'
@@ -109,14 +109,14 @@ class NOWPayments:
         This is a method to get information about the current state of the API. If everything
         is OK, you will receive an "OK" message. Otherwise, you'll see some error.
         """
-        return self.GET("STATUS")
+        return self.get("STATUS")
 
     def currencies(self) -> Dict:
         """
         This is a method for obtaining information about all cryptocurrencies available for
         payments.
         """
-        return self.GET("CURRENCIES")
+        return self.get("CURRENCIES")
 
     def merchant_coins(self) -> Dict:
         """
@@ -124,7 +124,7 @@ class NOWPayments:
         for payments. Shows the coins you set as available for payments in the "coins settings"
         tab on your personal account.
         """
-        return self.GET("MERCHANT_COINS")
+        return self.get("MERCHANT_COINS")
 
     def estimate(
         self, amount: float | int, currency_from: str, currency_to: str
@@ -139,7 +139,7 @@ class NOWPayments:
          :param  str currency_from: Fiat currencies.
          :param  str currency_to: Cryptocurrency.
         """
-        return self.GET("ESTIMATE", amount, currency_from, currency_to)
+        return self.get("ESTIMATE", amount, currency_from, currency_to)
 
     def create_payment(
         self,
@@ -186,7 +186,7 @@ class NOWPayments:
         if len(data) != 13:
             raise TypeError("create_payment() got an unexpected keyword argument")
 
-        return self.POST("PAYMENT", data)
+        return self.post("PAYMENT", data)
 
     def payment_status(self, payment_id: int) -> Any:
         """
@@ -194,7 +194,7 @@ class NOWPayments:
 
         :param int payment_id: ID of the payment in the request.
         """
-        return self.GET("PAYMENT_STATUS", payment_id)
+        return self.get("PAYMENT_STATUS", payment_id)
 
     def min_amount(self, currency_from: str, currency_to: str = None) -> Any:
         """
@@ -203,4 +203,4 @@ class NOWPayments:
         :param currency_from: Currency from
         :param currency_to: Currency to
         """
-        self.GET("MIN_AMOUNT", currency_from, currency_to)
+        self.get("MIN_AMOUNT", currency_from, currency_to)

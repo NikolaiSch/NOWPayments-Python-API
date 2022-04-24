@@ -32,9 +32,9 @@ Every api call requires this api key. Make sure to use this key when getting sta
 ```python
 from nowpay import NOWPayments
 
-np = NOWPayments(API_KEY)
+now_pay = NOWPayments(API_KEY)
 
-status = np.status()
+status = now_pay.status()
 ```
 
 Sandbox is used in the same way in correspondence with the documentation as follows.
@@ -42,9 +42,9 @@ Sandbox is used in the same way in correspondence with the documentation as foll
 ```python
 from nowpay import NOWPayments
 
-np = NOWPayments(SANDBOX_API_KEY, True)
+now_pay = NOWPayments(SANDBOX_API_KEY, True)
 
-status = np.status()
+status = now_pay.status()
 ```
 
 ## Breaking Changes from 1.1.1
