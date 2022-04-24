@@ -190,5 +190,6 @@ def test_payment_status(now_pay: NOWPayments) -> None:
 
 
 def test_min_amount(now_pay: NOWPayments) -> None:
+    """Tests if the minimum amount endpoint works"""
     response = now_pay.min_amount("btc", "eth")
     assert response["min_amount"] <= 0.1
