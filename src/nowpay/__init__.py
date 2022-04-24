@@ -8,7 +8,6 @@ from re import match
 import requests
 from requests import Response
 from requests.exceptions import HTTPError
-import flask
 
 
 class NOWPayments:
