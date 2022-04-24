@@ -7,16 +7,16 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="nowpayments",
-    version="1.1.1",
-    author="Arian Ventura Rodríguez",
-    author_email="arianventura94@gmail.com",
+    name="nowpay",
+    version="1.0.0",
+    author="@NikolaiSch",
+    author_email="NikolaiS@tuta.io",
     description="NOWPayments python API",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/Ventura94/NOWPayments-Python-API",
+    url="https://github.com/NikolaiSch/NOWPayments-Python-API",
     project_urls={
-        "Bug Tracker": "https://github.com/Ventura94/NOWPayments-Python-API/issues",
+        "Bug Tracker": "https://github.com/NikolaiSch/NOWPayments-Python-API/issues",
     },
     classifiers=[
         "Programming Language :: Python :: 3",

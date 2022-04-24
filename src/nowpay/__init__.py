@@ -1,7 +1,9 @@
 """
 A Python wrapper for the NOWPayments API.
 """
+from email import header
 from typing import Any, Dict, Union
+from re import match
 
 import requests
 from requests import Response
@@ -13,20 +15,49 @@ class NOWPayments:
     Class to used for the NOWPayments API.
     """
 
-    API_URL = "https://api.nowpayments.io/v1/{}"
-    ESTIMATE_AMOUNT_URL = "estimate?amount={}&currency_from={}&currency_to={}"
-    MIN_AMOUNT_URL = "min-amount?currency_from={}&currency_to={}"
+    debug_mode = False
 
-    def __init__(self, key: str) -> None:
+    API_KEY_REGEX = r"([A-z0-9]{7}-[A-z0-9]{7}-[A-z0-9]{7}-[A-z0-9]{7})"
+
+    # Base URL
+    NORMAL_URL = "https://api.nowpayments.io/v1/{}"
+    SANDBOX_URL = "https://api-sandbox.nowpayments.io/v1/{}"
+
+    API_URL = ""
+
+    endpoints = {
+        "STATUS": "status",
+        "CURRENCIES": "currencies",
+        "MERCHANT_COINS": "merchant/coins",
+        "ESTIMATE": "estimate?amount={}&currency_from={}&currency_to={}",
+        "PAYMENT": "payment",
+        "PAYMENT_STATUS": "payment/{}",
+        "MIN_AMOUNT": "min-amount?currency_from={}&currency_to={}",
+    }
+
+    def __init__(self, key: str, sandbox: bool = False, debug_mode=False) -> None:
         """
         Class construct. Receives your api key as initial parameter.
 
         :param str key: API key
+        :param bool sandbox: if True, sets API_URL to the sandbox url (need sandbox api key)
+        :param bool debug_mode: returns the url, instead of doing any requests when successful
         """
-        self.session = requests.Session()
-        self.key = key
+        self.debug_mode = debug_mode
 
-    def get_url(self, endpoint: str) -> str:
+        if match(self.API_KEY_REGEX, key).group(0) != key:
+            raise ValueError("Incorrect API Key format")
+
+        self.session = requests.Session()
+        self.API_KEY = key
+        self.headers = {"x-api-key": self.API_KEY, "User-Agent": "nowpay.py"}
+
+        if sandbox:
+            self.API_URL = self.SANDBOX_URL
+        else:
+            self.API_URL = self.NORMAL_URL
+
+    def create_url(self, endpoint: str) -> str:
         """
         Set the url to be used
 
@@ -34,95 +65,85 @@ class NOWPayments:
         """
         return self.API_URL.format(endpoint)
 
-    def get_requests(self, url: str) -> Response:
+    def GET(self, endpoint: str, *args) -> Response:
         """
         Make get requests with your header
 
         :param str url: URL to which the request is made
         """
-        headers = {"x-api-key": self.key}
-        return self.session.get(url=url, headers=headers)
+        assert endpoint in self.endpoints.keys()
+        url = self.create_url(self.endpoints[endpoint])
+        if len(args) >= 1:
+            url = url.format(*args)
+        if self.debug_mode:
+            return url
+        resp = self.session.get(url, headers=self.headers)
+        if resp.status_code == 200:
+            return resp.json()
+        raise HTTPError(
+            f'Error {resp.status_code}: {resp.json().get("message", "Not descriptions")}'
+        )
 
-    def post_requests(self, url: str, data: Dict = None) -> Response:
+    def POST(self, endpoint: str, data: Dict = None, *args) -> Response:
         """
         Make get requests with your header and data
 
         :param url: URL to which the request is made
         :param data: Data to which the request is made
         """
-        headers = {"x-api-key": self.key}
-        return self.session.post(url=url, headers=headers, data=data)
+        assert endpoint in self.endpoints
+        url = self.create_url(self.endpoints[endpoint])
+        if len(args) >= 1:
+            url.format(*args)
+        if self.debug_mode:
+            return url
+        resp = self.session.post(url, data=data, headers=self.headers)
+        if resp.status_code == 200 or resp.status_code == 201:
+            return resp.json()
+        raise HTTPError(
+            f'Error {resp.status_code}: {resp.json().get("message", "Not descriptions")}'
+        )
 
-    def get_api_status(self) -> Dict:
+    def status(self) -> Dict:
         """
         This is a method to get information about the current state of the API. If everything
         is OK, you will receive an "OK" message. Otherwise, you'll see some error.
         """
-        endpoint = "status"
-        url = self.get_url(endpoint)
-        resp = requests.get(url)
-        if resp.status_code == 200:
-            return resp.json()
-        raise HTTPError(
-            f'Error {resp.status_code}: {resp.json().get("message", "Not descriptions")}'
-        )
+        return self.GET("STATUS")
 
-    def get_available_currencies(self) -> Dict:
+    def currencies(self) -> Dict:
         """
         This is a method for obtaining information about all cryptocurrencies available for
         payments.
         """
-        endpoint = "currencies"
-        url = self.get_url(endpoint)
-        resp = self.get_requests(url)
-        if resp.status_code == 200:
-            return resp.json()
-        raise HTTPError(
-            f'Error {resp.status_code}: {resp.json().get("message", "Not descriptions")}'
-        )
+        return self.GET("CURRENCIES")
 
-    def get_available_checked_currencies(self) -> Dict:
+    def merchant_coins(self) -> Dict:
         """
         This is a method for obtaining information about the cryptocurrencies available
-         for payments. Shows the coins you set as available for payments in the "coins settings"
-          tab on your personal account.
+        for payments. Shows the coins you set as available for payments in the "coins settings"
+        tab on your personal account.
         """
-        endpoint = "merchant/coins"
-        url = self.get_url(endpoint)
-        resp = self.get_requests(url)
-        if resp.status_code == 200:
-            return resp.json()
-        raise HTTPError(
-            f'Error {resp.status_code}: {resp.json().get("message", "Not descriptions")}'
-        )
+        return self.GET("MERCHANT_COINS")
 
-    def get_estimate_price(
-        self, amount: float, currency_from: str, currency_to: str
+    def estimate(
+        self, amount: float | int, currency_from: str, currency_to: str
     ) -> Dict:
         """This is a method for calculating the approximate price in cryptocurrency
         for a given value in Fiat currency. You will need to provide the initial cost
-         in the Fiat currency (amount, currency_from) and the necessary cryptocurrency
-         (currency_to) Currently following fiat currencies are available: usd, eur, nzd,
-          brl, gbp.
+        in the Fiat currency (amount, currency_from) and the necessary cryptocurrency
+        (currency_to) Currently following fiat currencies are available: usd, eur, nzd,
+        brl, gbp.
 
          :param  float amount: Cost value.
-
          :param  str currency_from: Fiat currencies.
-
          :param  str currency_to: Cryptocurrency.
         """
-        endpoint = self.ESTIMATE_AMOUNT_URL.format(amount, currency_from, currency_to)
-        url = self.get_url(endpoint)
-        resp: Response = self.get_requests(url)
-        if resp.status_code == 200:
-            return resp.json()
-        raise HTTPError(
-            f'Error {resp.status_code}: {resp.json().get("message", "Not descriptions")}'
-        )
+        return self.GET("ESTIMATE", amount, currency_from, currency_to)
 
     def create_payment(
         self,
-        price_amount: float,
+        price_amount: float | int,
         price_currency: str,
         pay_currency: str,
         **kwargs: Union[str, float, bool, int],
@@ -132,30 +153,20 @@ class NOWPayments:
         your website.
 
         :param float price_amount: The fiat equivalent of the price to be paid in crypto.
-
         :param str price_currency: The fiat currency in which the price_amount is specified.
-
         :param str pay_currency: The crypto currency in which the pay_amount is specified.
-
         :param float pay_amount: The amount that users have to pay for the order stated in crypto.
-
         :param str ipn_callback_url: Url to receive callbacks, should contain "http" or "https".
-
         :param str order_id: Inner store order ID.
-
         :param str order_description: Inner store order description.
-
         :param int purchase_id: Id of purchase for which you want to create a other payment.
-
         :param str payout_address: Receive funds on another address.
-
         :param str payout_currency: Currency of your external payout_address.
-
         :param int payout_extra_id: Extra id or memo or tag for external payout_address.
-
         :param bool fixed_rate: Required for fixed-rate exchanges.
+        :param str case: This only affects sandbox, which status the payment is desired
         """
-        endpoint = "payment"
+
         data = {
             "price_amount": price_amount,
             "price_currency": price_currency,
@@ -169,48 +180,27 @@ class NOWPayments:
             "payout_currency": None,
             "payout_extra_id": None,
             "fixed_rate": None,
+            "case": None,
         }
         data.update(**kwargs)
-        if len(data) != 12:
+        if len(data) != 13:
             raise TypeError("create_payment() got an unexpected keyword argument")
 
-        url = self.get_url(endpoint)
-        resp = self.post_requests(url, data=data)
-        if resp.status_code == 201:
-            return resp.json()
-        raise HTTPError(
-            f'Error {resp.status_code}: {resp.json().get("message", "Not descriptions")}'
-        )
+        return self.POST("PAYMENT", data)
 
-    def get_payment_status(self, payment_id: int) -> Any:
+    def payment_status(self, payment_id: int) -> Any:
         """
         Get the actual information about the payment.
 
         :param int payment_id: ID of the payment in the request.
         """
-        endpoint = f"payment/{payment_id}"
-        url = self.get_url(endpoint)
-        resp: Response = self.get_requests(url)
-        if resp.status_code == 200:
-            return resp.json()
-        raise HTTPError(
-            f'Error {resp.status_code}: {resp.json().get("message", "Not descriptions")}'
-        )
+        return self.GET("PAYMENT_STATUS", payment_id)
 
-    def get_minimum_payment_amount(
-        self, currency_from: str, currency_to: str = None
-    ) -> Any:
+    def min_amount(self, currency_from: str, currency_to: str = None) -> Any:
         """
         Get the minimum payment amount for a specific pair.
 
         :param currency_from: Currency from
         :param currency_to: Currency to
         """
-        endpoint = self.MIN_AMOUNT_URL.format(currency_from, currency_to)
-        url = self.get_url(endpoint)
-        resp = requests.get(url)
-        if resp.status_code == 200:
-            return resp.json()
-        raise HTTPError(
-            f'Error {resp.status_code}: {resp.json().get("message", "Not descriptions")}'
-        )
+        self.GET("MIN_AMOUNT", currency_from, currency_to)
