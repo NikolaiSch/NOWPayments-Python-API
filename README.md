@@ -9,6 +9,8 @@
 [![Black](https://github.com/NikolaiSch/NOWPayments-Python-API/actions/workflows/black.yml/badge.svg)](https://github.com/NikolaiSch/NOWPayments-Python-API/actions/workflows/black.yml)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
+This repo is for the python package called __"nowpay"__
+
 A Python wrapper for the [NOWPayments API](https://documenter.getpostman.com/view/7907941/S1a32n38?version=latest).  
 
 The api call descriptions are from the official documentation.
@@ -29,16 +31,37 @@ Every api call requires this api key. Make sure to use this key when getting sta
 
 ```python
 from nowpay import NOWPayments
-np = NOWPayments("API_KEY")
 
-status = np.get_api_status()
+np = NOWPayments(API_KEY)
+
+status = np.status()
 ```
 
 Sandbox is used in the same way in correspondence with the documentation as follows.
 
 ```python
-from now import NOWPayments
-np = NOWPayments("SANDBOX_API_KEY", True)
+from nowpay import NOWPayments
 
-status = np.get_api_status()
+np = NOWPayments(SANDBOX_API_KEY, True)
+
+status = np.status()
 ```
+
+## Breaking Changes from 1.1.1
+
+- Renamed Function names
+  - status (for api status)
+  - currencies (for all available currencies)
+  - merchant_coins (for your account allowed coins)
+  - estimate (to estimate cost for a transaction)
+  - create_payment (to create a payment transaction, returns details)
+  - payment_status (to view payment status from id)
+  - min_amount (view minimum cost of a transaction allowed from 1 crypto to another)
+- No more extra sandbox class (built in)
+  - Now use sandbox=True in the constructor
+  - added case support, now in sandbox mode, you are able to specify case.
+    - valid cases are "success", "partially_paid", "failure" to test your api
+
+### Credit
+
+Originally written by _[@Ventura94](https://github.com/Ventura94)_
