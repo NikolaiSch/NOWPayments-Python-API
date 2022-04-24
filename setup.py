@@ -14,9 +14,9 @@ setuptools.setup(
     description="NOWPayments python API",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/NikolaiSch/NOWPayments-Python-API",
+    url="https://github.com/NikolaiSch/NowPay-Python",
     project_urls={
-        "Bug Tracker": "https://github.com/NikolaiSch/NOWPayments-Python-API/issues",
+        "Bug Tracker": "https://github.com/NikolaiSch/NowPay-Python/issues",
     },
     classifiers=[
         "Programming Language :: Python :: 3",
