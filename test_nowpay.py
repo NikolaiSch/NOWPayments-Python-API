@@ -54,6 +54,17 @@ def test_sandbox_url(
     assert now_pay_sandbox.api_url == "https://api-sandbox.nowpayments.io/v1/{}"
 
 
+def test_wrong_api_format() -> None:
+    """
+    API Sandbox key param test
+
+    :param now_pay: NOWPayments class fixture
+    :return:
+    """
+    with pytest.raises(ValueError):
+        NOWPayments("XXXXX", debug_mode=True, sandbox=True)
+
+
 def test_get_requests(
     now_pay_sandbox: NOWPayments,  # pylint: disable=redefined-outer-name
 ) -> None:
@@ -62,6 +73,8 @@ def test_get_requests(
     """
     response = now_pay_sandbox.get("STATUS")
     assert response == "https://api-sandbox.nowpayments.io/v1/status"
+    response = now_pay_sandbox.create_payment(100, "usd", "btc")
+    assert response == "https://api-sandbox.nowpayments.io/v1/payment"
 
 
 def test_api_status(
@@ -174,3 +187,8 @@ def test_payment_status(now_pay: NOWPayments) -> None:
     payment = now_pay.payment_status(int(payment_id))
     assert payment["payment_status"] == "waiting", "payment_status"
     assert payment["price_amount"] == 100, "price_amount"
+
+
+def test_min_amount(now_pay: NOWPayments) -> None:
+    response = now_pay.min_amount("btc", "eth")
+    assert response["min_amount"] <= 0.1

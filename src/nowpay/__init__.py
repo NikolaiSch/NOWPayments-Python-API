@@ -45,7 +45,9 @@ class NOWPayments:
         """
         self.debug_mode = debug_mode
 
-        if match(self.key_regex, key).group(0) != key:
+        try:
+            match(self.key_regex, key).group(0) == key
+        except:
             raise ValueError("Incorrect API Key format")
 
         self.session = requests.Session()
@@ -93,8 +95,6 @@ class NOWPayments:
         """
         assert endpoint in self.endpoints
         url = self.create_url(self.endpoints[endpoint])
-        if len(args) >= 1:
-            url.format(*args)
         if self.debug_mode:
             return url
         resp = self.session.post(url, data=data, headers=self.headers)
@@ -196,11 +196,11 @@ class NOWPayments:
         """
         return self.get("PAYMENT_STATUS", payment_id)
 
-    def min_amount(self, currency_from: str, currency_to: str = None) -> Any:
+    def min_amount(self, currency_from: str, currency_to: str) -> Any:
         """
         Get the minimum payment amount for a specific pair.
 
         :param currency_from: Currency from
         :param currency_to: Currency to
         """
-        self.get("MIN_AMOUNT", currency_from, currency_to)
+        return self.get("MIN_AMOUNT", currency_from, currency_to)
