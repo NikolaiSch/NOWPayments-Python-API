@@ -8,6 +8,7 @@ from re import match
 import requests
 from requests import Response
 from requests.exceptions import HTTPError
+import flask
 
 
 class NOWPayments:
@@ -47,8 +48,8 @@ class NOWPayments:
 
         try:
             match(self.key_regex, key).group(0) == key
-        except:
-            raise ValueError("Incorrect API Key format")
+        except Exception as e:
+            raise ValueError("Incorrect API Key format") from e
 
         self.session = requests.Session()
         self.key = key
@@ -86,7 +87,7 @@ class NOWPayments:
             f'Error {resp.status_code}: {resp.json().get("message", "Not descriptions")}'
         )
 
-    def post(self, endpoint: str, data: Dict, *args) -> Response:
+    def post(self, endpoint: str, data: Dict) -> Response:
         """
         Make post requests with your header and data
 
