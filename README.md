@@ -60,6 +60,8 @@ ipn = Ipn("My_IPN_Secret", success)
 app = ipn.export_app()
 
 app.run()
+
+# To understand more visit examples/ipn.py for a more thorough explanation
 ```
 
 ## Breaking Changes from 1.1.1
