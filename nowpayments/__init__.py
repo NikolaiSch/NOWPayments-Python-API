@@ -16,7 +16,7 @@ class NOWPayments:
 
     _API_URL = "https://api.nowpayments.io/v1/{}"
     _ESTIMATE_AMOUNT_URL = "estimate?amount={}&currency_from={}&currency_to={}"
-    _MIN_AMOUNT_URL = "min-amount?currency_from={}"
+    _MIN_AMOUNT_URL = "min-amount?currency_from={}&currency_to={}"
     _IS_SANDBOX = False
 
     def __init__(self, key: str) -> None:

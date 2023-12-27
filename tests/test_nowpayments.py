@@ -166,7 +166,7 @@ def test_get_estimate_price_error(
         100&currency_from=cup&currency_to=btc",
         autospec=True,
     )
-    with pytest.raises(HTTPError, match="Error 404: Currency cup not found"):
+    with pytest.raises(HTTPError, match="Error 400: Currency CUP was not found"):
         now_payments.get_estimate_price(
             amount=100, currency_from="cup", currency_to="eur"
         )
@@ -243,8 +243,8 @@ def test_create_payment_with_error(
     )
     with pytest.raises(
         HTTPError,
-        match="Error 500: This currency is currently unavailable. Try it in 2 hours",
+        match='Error 400: Currency ERR was not found',
     ):
         now_payments.create_payment(
-            price_amount=100, price_currency="usd", pay_currency="cup"
+            price_amount=100, price_currency="usd", pay_currency="ERR"
         )
